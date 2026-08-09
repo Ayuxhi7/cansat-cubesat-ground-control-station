@@ -1,0 +1,1422 @@
+/* ==========================================================================
+   CANSAT GCS CORE STYLESHEET
+   Aerospace Dark Theme Design System (Blue/Cyan Accents)
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. CSS DESIGN VARIABLES
+   These variables act as design tokens for colors, spacing, and fonts.
+   -------------------------------------------------------------------------- */
+:root {
+    /* Color Palette */
+    --bg-main: #0a0d16;          /* Deep space black-blue background */
+    --bg-card: #121829;          /* Slate-blue card background */
+    --bg-subcard: #182037;       /* Slightly lighter blue for inner sections */
+    
+    --border-color: #212d4d;     /* High-tech border color */
+    
+    /* Neon Status Accent Colors */
+    --accent-blue: #00bcd4;      /* Active state cyan */
+    --accent-cyan: #00e5ff;      /* Glowing cyan accent */
+    --accent-orange: #ff9100;    /* Attention orange */
+    --color-text-main: #e2e8f0;  /* Main readable white/gray text */
+    --color-text-sub: #7b8eaf;   /* Muted gray text for labels */
+    
+    --status-ok: #00e676;        /* Neon Green (Operational/Normal) */
+    --status-warning: #ffea00;   /* Neon Yellow (Caution/Warning) */
+    --status-danger: #ff1744;    /* Neon Red (Critical/Emergency) */
+    --status-offline: #5c6b73;   /* Slate Gray (Inactive/Disconnected) */
+    
+    /* Font Configurations */
+    --font-ui: 'Rajdhani', sans-serif;
+    --font-numbers: 'Orbitron', sans-serif;
+    
+    /* Borders & Shadow Glows */
+    --border-radius: 8px;
+    --glow-cyan: 0 0 10px rgba(0, 229, 255, 0.35);
+    --glow-red: 0 0 10px rgba(255, 23, 68, 0.4);
+    --glow-green: 0 0 10px rgba(0, 230, 118, 0.4);
+    --glow-orange: 0 0 10px rgba(255, 145, 0, 0.35);
+}
+
+/* --------------------------------------------------------------------------
+   2. GLOBAL BODY & CONTAINER SETUPS
+   -------------------------------------------------------------------------- */
+
+/* Custom High-Tech Scrollbars for data logs and alert feeds */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+    transition: background 0.2s ease;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-cyan);
+}
+
+
+body {
+    background-color: var(--bg-main);
+    color: var(--color-text-main);
+    font-family: var(--font-ui);
+    font-size: 16px;
+    line-height: 1.5;
+    overflow-x: hidden; /* Prevents unwanted horizontal scrolling */
+}
+
+.gcs-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Takes up full vertical height of screen */
+    padding: 10px;
+}
+
+/* --------------------------------------------------------------------------
+   3. GCS HEADER SECTION
+   -------------------------------------------------------------------------- */
+.gcs-header {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 10px 20px;
+    margin-bottom: 10px;
+    
+    display: flex;
+    justify-content: space-between; /* Pushes child elements to edges */
+    align-items: center;            /* Vertically centers elements */
+    flex-wrap: wrap;                /* Responsive wrapping on small screens */
+    gap: 15px;
+}
+
+.header-logo {
+    display: flex;
+    flex-direction: column;
+}
+
+.logo-text {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: var(--accent-cyan);
+    letter-spacing: 2px;
+    font-family: var(--font-numbers);
+}
+
+.logo-subtext {
+    font-size: 0.75rem;
+    letter-spacing: 4px;
+    color: var(--color-text-sub);
+}
+
+.header-mission-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--accent-orange);
+    text-shadow: var(--glow-orange);
+    border: 1px solid rgba(255, 145, 0, 0.3);
+    padding: 6px 15px;
+    border-radius: 4px;
+    background-color: rgba(255, 145, 0, 0.05);
+}
+
+.header-mission-mode {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 6px 15px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+}
+
+.mode-label {
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+    color: var(--color-text-sub);
+}
+
+.mode-indicator {
+    font-size: 1.1rem;
+    font-weight: 700;
+    font-family: var(--font-numbers);
+    letter-spacing: 1px;
+}
+
+/* Dynamic mission mode colors */
+.mode-prelaunch { color: var(--status-ok); text-shadow: var(--glow-green); }
+.mode-ascent { color: var(--status-warning); }
+.mode-descent { color: var(--accent-cyan); text-shadow: var(--glow-cyan); }
+.mode-recovery { color: var(--color-text-sub); }
+
+.mission-timers {
+    display: flex;
+    gap: 20px;
+}
+
+.timer-box {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.timer-label {
+    font-size: 0.7rem;
+    color: var(--color-text-sub);
+    letter-spacing: 1px;
+}
+
+.timer-value {
+    font-family: var(--font-numbers);
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--color-text-main);
+    letter-spacing: 1px;
+}
+
+/* --------------------------------------------------------------------------
+   4. CONTROL BUTTON BAR
+   -------------------------------------------------------------------------- */
+.gcs-control-bar {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    
+    display: flex;
+    justify-content: flex-start; /* Aligns control groups from left */
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;            /* Wraps control bar rows on narrow displays */
+}
+
+.control-group {
+    display: flex;
+    gap: 10px;
+    border-right: 2px solid var(--border-color);
+    padding-right: 15px;
+}
+
+.control-group:last-child {
+    border-right: none;
+    padding-right: 0;
+}
+
+/* Base button properties */
+.btn {
+    font-family: var(--font-ui);
+    font-size: 0.9rem;
+    font-weight: 700;
+    padding: 8px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    cursor: pointer;
+    background: transparent;
+    color: var(--color-text-main);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.btn:hover:not(:disabled) {
+    transform: translateY(-1px); /* Slight hover lift */
+}
+
+.btn:active:not(:disabled) {
+    transform: translateY(1px);  /* Click depress effect */
+}
+
+.btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.btn:focus-visible, .form-select:focus-visible, .alert-dismiss-btn:focus-visible {
+    outline: 2px solid var(--accent-cyan);
+    outline-offset: 2px;
+}
+
+/* Custom button types */
+.btn-start {
+    background-color: rgba(0, 230, 118, 0.1);
+    border-color: var(--status-ok);
+    color: var(--status-ok);
+}
+.btn-start:hover:not(:disabled) {
+    background-color: var(--status-ok);
+    color: #000;
+    box-shadow: var(--glow-green);
+}
+
+.btn-stop {
+    background-color: rgba(255, 23, 68, 0.1);
+    border-color: var(--status-danger);
+    color: var(--status-danger);
+}
+.btn-stop:hover:not(:disabled) {
+    background-color: var(--status-danger);
+    color: var(--color-text-main);
+    box-shadow: var(--glow-red);
+}
+
+.btn-utility {
+    background-color: rgba(0, 229, 255, 0.05);
+    border-color: var(--border-color);
+    color: var(--color-text-main);
+}
+.btn-utility:hover:not(:disabled) {
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+}
+
+.btn-export {
+    background-color: rgba(0, 188, 212, 0.1);
+    border-color: var(--accent-blue);
+    color: var(--accent-cyan);
+}
+.btn-export:hover:not(:disabled) {
+    background-color: var(--accent-blue);
+    color: #000;
+    box-shadow: var(--glow-cyan);
+}
+
+.btn-warning {
+    background-color: rgba(255, 234, 0, 0.1);
+    border-color: var(--status-warning);
+    color: var(--status-warning);
+}
+.btn-warning:hover:not(:disabled) {
+    background-color: var(--status-warning);
+    color: #000;
+}
+
+.btn-danger {
+    background-color: rgba(255, 23, 68, 0.15);
+    border-color: var(--status-danger);
+    color: var(--status-danger);
+}
+.btn-danger:hover:not(:disabled) {
+    background-color: var(--status-danger);
+    color: var(--color-text-main);
+    box-shadow: var(--glow-red);
+}
+
+.btn-info {
+    background-color: rgba(0, 229, 255, 0.1);
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+}
+.btn-info:hover:not(:disabled) {
+    background-color: var(--accent-cyan);
+    color: #000;
+}
+
+/* --------------------------------------------------------------------------
+   5. RESPONSIVE DASHBOARD GRID
+   Using CSS Grid to position items in a robust, 4-column dashboard layout
+   -------------------------------------------------------------------------- */
+.gcs-dashboard-grid {
+    display: grid;
+    /* Grid Column definition: Creates up to 4 columns on large screens */
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+/* Card Panel Base Styling with 3D depth and subtle neon glow triggers */
+.gcs-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    transition: border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.gcs-card:hover {
+    border-color: rgba(0, 229, 255, 0.3);
+    box-shadow: 0 4px 25px rgba(0, 229, 255, 0.08);
+    transform: translateY(-2px);
+}
+
+.card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: var(--accent-cyan);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 6px;
+    font-family: var(--font-ui);
+    text-transform: uppercase;
+}
+
+/* --------------------------------------------------------------------------
+   6. CUSTOM GRID PLACEMENTS & LAYOUTS FOR CARDS (4-Column Layout)
+   -------------------------------------------------------------------------- */
+
+/* Row 1 cards: Telemetry (span 2), Mission Health (span 1), Diagnostics (span 1) */
+.telemetry-panel {
+    grid-column: span 2;
+}
+
+.summary-panel {
+    grid-column: span 1;
+}
+
+.error-panel {
+    grid-column: span 1;
+}
+
+/* Row 2: GPS Map (span 2), Commands (span 1), Video (span 1) */
+.map-panel {
+    grid-column: span 2;
+    min-height: 380px;
+}
+
+.command-panel {
+    grid-column: span 1;
+    min-height: 380px;
+}
+
+.video-panel {
+    grid-column: span 1;
+    min-height: 380px;
+}
+
+/* Row 3: 3D Orientation (span 1), Plots (span 3) */
+.orientation-panel {
+    grid-column: span 1;
+    min-height: 380px;
+}
+
+.graphs-panel {
+    grid-column: span 3;
+}
+
+/* Row 4: Telemetry Logs Table (Full-width span 4) */
+.logs-panel {
+    grid-column: span 4;
+}
+
+/* --------------------------------------------------------------------------
+   7. COMPONENT STYLINGS
+   -------------------------------------------------------------------------- */
+
+/* PANEL 1: Telemetry Data Tables */
+.telemetry-row {
+    display: flex;
+    gap: 10px;
+    flex-grow: 1;
+}
+
+.telemetry-sub-card {
+    flex: 1;
+    background: var(--bg-subcard);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 10px;
+}
+
+.telemetry-sub-card h3 {
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+    color: var(--color-text-sub);
+    margin-bottom: 8px;
+    border-bottom: 1px dotted var(--border-color);
+    padding-bottom: 4px;
+}
+
+.data-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.data-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.95rem;
+}
+
+.data-label {
+    color: var(--color-text-sub);
+}
+
+.data-value {
+    font-family: var(--font-numbers);
+    color: var(--color-text-main);
+    font-weight: 700;
+}
+
+/* Specific text accent styles */
+.text-accent { color: var(--accent-orange); }
+.text-success { color: var(--status-ok); }
+
+/* Status Indicator (connected/disconnected) */
+.status-indicator {
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 0.75rem;
+    font-family: var(--font-numbers);
+    font-weight: 900;
+}
+
+.status-indicator.offline {
+    background-color: rgba(92, 107, 115, 0.15);
+    color: var(--status-offline);
+    border: 1px solid var(--status-offline);
+}
+
+.status-indicator.online {
+    background-color: rgba(0, 230, 118, 0.15);
+    color: var(--status-ok);
+    border: 1px solid var(--status-ok);
+    text-shadow: var(--glow-green);
+}
+
+/* PANEL 2: Mission Summary Health Details */
+.summary-details {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex-grow: 1;
+    justify-content: center;
+}
+
+/* PANEL 3: Diagnostic & Alerts */
+.error-code-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 5px;
+    margin: 10px 0;
+}
+
+.error-digit-box {
+    flex: 1;
+    background: var(--bg-subcard);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 10px 5px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.error-digit {
+    font-family: var(--font-numbers);
+    font-size: 2.2rem;
+    font-weight: 900;
+    line-height: 1;
+    color: var(--status-ok);
+    text-shadow: var(--glow-green);
+    transition: all 0.3s ease;
+}
+
+/* Glowing code states */
+.error-digit.alert-active {
+    color: var(--status-danger);
+    text-shadow: var(--glow-red);
+}
+
+.digit-subtext {
+    font-size: 0.65rem;
+    color: var(--color-text-sub);
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+    text-transform: uppercase;
+}
+
+.active-alerts {
+    flex-grow: 1;
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 10px;
+    font-family: monospace;
+    font-size: 0.85rem;
+    max-height: 120px;
+    overflow-y: auto; /* Scrolling container for alert logs */
+}
+
+.alert-item {
+    padding: 4px 6px;
+    margin-bottom: 4px;
+    border-radius: 2px;
+    border-left: 3px solid transparent;
+}
+
+.alert-item:last-child {
+    margin-bottom: 0;
+}
+
+.alert-info {
+    border-left-color: var(--accent-blue);
+    color: var(--color-text-main);
+}
+
+.alert-warning {
+    background-color: rgba(255, 234, 0, 0.05);
+    border-left-color: var(--status-warning);
+    color: var(--status-warning);
+}
+
+.alert-critical {
+    background-color: rgba(255, 23, 68, 0.05);
+    border-left-color: var(--status-danger);
+    color: var(--status-danger);
+}
+
+/* PANEL 4: Command Console */
+.command-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.command-status {
+    background: var(--bg-subcard);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.status-lbl {
+    color: var(--color-text-sub);
+}
+
+.status-val {
+    font-family: var(--font-numbers);
+    font-weight: 700;
+}
+
+.text-muted { color: var(--color-text-sub); }
+.text-success { color: var(--status-ok); text-shadow: var(--glow-green); }
+.text-danger { color: var(--status-danger); text-shadow: var(--glow-red); }
+
+/* PANEL 5: Leaflet Map Container */
+.map-container {
+    flex-grow: 1;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    background-color: #0b0e14;
+    overflow: hidden;
+    position: relative;
+    min-height: 250px;
+}
+
+.map-telemetry-hud {
+    background: rgba(10, 13, 22, 0.88);
+    border: 1px solid var(--accent-cyan);
+    border-radius: 4px;
+    color: var(--color-text-main);
+    font-family: var(--font-numbers);
+    font-size: 0.68rem;
+    letter-spacing: 0.4px;
+    padding: 6px 8px;
+    box-shadow: var(--glow-cyan);
+}
+
+/* PANEL 6: Live Video Camera Box */
+.video-container {
+    position: relative;
+    aspect-ratio: 4/3;
+    background-color: #000;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#webcam-stream {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Crops camera input to cover card cleanly */
+    background-color: #000;
+}
+
+.video-overlay {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0,0,0,0.65);
+    padding: 4px 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.15);
+    pointer-events: none; /* Allows clicks to pass through overlay */
+}
+
+.rec-dot {
+    width: 8px;
+    height: 8px;
+    background-color: var(--status-danger);
+    border-radius: 50%;
+    /* Blinking animation for rec status */
+    animation: blink 1.2s infinite ease-in-out;
+}
+
+@keyframes blink {
+    0% { opacity: 0.2; }
+    50% { opacity: 1.0; }
+    100% { opacity: 0.2; }
+}
+
+#video-status-text {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--color-text-main);
+    letter-spacing: 0.5px;
+}
+
+.video-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.form-select {
+    flex-grow: 1;
+    background-color: var(--bg-subcard);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: var(--color-text-main);
+    padding: 8px;
+    font-family: var(--font-ui);
+    font-size: 0.9rem;
+    outline: none;
+    cursor: pointer;
+}
+
+.form-select:focus {
+    border-color: var(--accent-cyan);
+}
+
+/* PANEL 7: 3D Canvas Panel */
+.canvas-container {
+    flex-grow: 1;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: rgba(0,0,0,0.3);
+    overflow: hidden;
+    position: relative;
+    min-height: 220px;
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.orientation-placeholder {
+    font-size: 0.9rem;
+    color: var(--color-text-sub);
+    letter-spacing: 1px;
+    text-align: center;
+    padding: 10px;
+}
+
+/* PANEL 8: Live Real-Time Graphs Grid */
+.graphs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* Auto layouts charts cleanly */
+    gap: 15px;
+    margin-top: 5px;
+}
+
+.chart-wrapper {
+    background-color: var(--bg-subcard);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 10px;
+    position: relative;
+    aspect-ratio: 16/9; /* Forces consistent widescreen graph aspect ratios */
+}
+
+/* PANEL 9: Tabular Log Section */
+.table-container {
+    max-height: 250px;
+    overflow-y: auto; /* Displays scrollbar when table grows */
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+
+.table-logs {
+    width: 100%;
+    border-collapse: collapse; /* Merges adjacent cell borders */
+    font-family: var(--font-ui);
+    font-size: 0.9rem;
+    text-align: left;
+}
+
+.table-logs th {
+    background-color: var(--bg-subcard);
+    color: var(--accent-cyan);
+    font-weight: 700;
+    padding: 10px 12px;
+    border-bottom: 2px solid var(--border-color);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.table-logs td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--color-text-main);
+    font-family: var(--font-numbers);
+}
+
+.table-logs tbody tr:nth-child(even) {
+    background-color: rgba(255, 255, 255, 0.015);
+}
+
+.table-logs tbody tr:hover {
+    background-color: rgba(0, 229, 255, 0.05); /* Highlight hovered log entry */
+}
+
+.text-center { text-align: center; }
+
+/* --------------------------------------------------------------------------
+   8. FOOTER STYLINGS
+   -------------------------------------------------------------------------- */
+.gcs-footer {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 8px 20px;
+    margin-top: 10px;
+    
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    color: var(--color-text-sub);
+    letter-spacing: 1px;
+}
+
+/* --------------------------------------------------------------------------
+   9. RESPONSIVE MEDIA QUERIES (BREAKPOINTS)
+   Adapting our dashboard layouts for tablets and smaller displays.
+   -------------------------------------------------------------------------- */
+
+/* Mid-Size screens (Tablets/Smaller monitors): Wrap 4 columns to 2 columns */
+@media (max-width: 1200px) {
+    .gcs-dashboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    /* Re-map column spans for 2 columns */
+    .telemetry-panel { grid-column: span 2; }
+    .summary-panel { grid-column: span 1; }
+    .error-panel { grid-column: span 1; }
+    
+    .map-panel { grid-column: span 2; }
+    .command-panel { grid-column: span 1; }
+    .video-panel { grid-column: span 1; }
+    
+    .orientation-panel { grid-column: span 1; }
+    .graphs-panel { grid-column: span 1; } /* Stack panel columns */
+    .logs-panel { grid-column: span 2; }
+}
+
+/* Mobile-Size devices (Smartphones): Single column stack layout */
+@media (max-width: 768px) {
+    .gcs-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .mission-timers {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .gcs-control-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .control-group {
+        border-right: none;
+        border-bottom: 2px solid var(--border-color);
+        padding-right: 0;
+        padding-bottom: 10px;
+        flex-direction: column;
+    }
+    
+    .control-group:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+    
+    .telemetry-row {
+        flex-direction: column; /* Sub-cards stack vertically on phone */
+    }
+    
+    .gcs-dashboard-grid {
+        grid-template-columns: 1fr; /* Single column only */
+    }
+    
+    /* Reset all spans to standard single-column blocks */
+    .telemetry-panel, .summary-panel, .error-panel, 
+    .map-panel, .command-panel, .video-panel, 
+    .orientation-panel, .graphs-panel, .logs-panel {
+        grid-column: span 1;
+    }
+    
+    .map-panel, .command-panel, .video-panel, .orientation-panel {
+        min-height: 300px;
+    }
+}
+
+/* ==========================================================================
+   10. LOADING SCREEN OVERLAY
+   ========================================================================== */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: var(--bg-main);
+    z-index: 9999; /* Stays above all panels */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.5s ease;
+}
+
+.loading-content {
+    width: 90%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+}
+
+.loading-logo-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.loading-logo-main {
+    font-family: var(--font-numbers);
+    font-size: 3rem;
+    font-weight: 900;
+    color: var(--accent-cyan);
+    letter-spacing: 4px;
+    text-shadow: var(--glow-cyan);
+}
+
+.loading-logo-sub {
+    font-size: 0.8rem;
+    letter-spacing: 5px;
+    color: var(--color-text-sub);
+}
+
+.loading-bar {
+    width: 100%;
+    height: 4px;
+    background-color: var(--bg-subcard);
+    border-radius: 2px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+
+.loading-bar-fill {
+    width: 0%; 
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
+    box-shadow: var(--glow-cyan);
+    animation: loadProgress 2s forwards cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes loadProgress {
+    0% { width: 0%; }
+    20% { width: 15%; }
+    50% { width: 60%; }
+    80% { width: 90%; }
+    100% { width: 100%; }
+}
+
+.loading-status-list {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-family: monospace;
+    font-size: 0.85rem;
+}
+
+.status-item {
+    padding-left: 20px;
+    position: relative;
+    color: var(--color-text-sub);
+}
+
+.status-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.status-item.pending::before {
+    background-color: var(--status-offline);
+}
+
+.status-item.loading::before {
+    background-color: var(--status-warning);
+    animation: blink 1s infinite;
+}
+
+.status-item.success {
+    color: var(--status-ok);
+}
+
+.status-item.success::before {
+    background-color: var(--status-ok);
+    box-shadow: var(--glow-green);
+}
+
+/* ==========================================================================
+   11. STATUS LED MATRIX
+   ========================================================================== */
+.led-array-container {
+    margin-top: 15px;
+    border-top: 1px dashed var(--border-color);
+    padding-top: 12px;
+}
+
+.led-array-label {
+    font-size: 0.75rem;
+    color: var(--color-text-sub);
+    letter-spacing: 1px;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.systems-led-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 5px;
+}
+
+.led-item {
+    background: var(--bg-subcard);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 6px 2px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    cursor: default;
+}
+
+.led-light {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--status-offline);
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.5);
+    transition: all 0.3s ease;
+}
+
+.led-off {
+    background-color: #2a354f;
+    box-shadow: none;
+}
+
+.led-ok {
+    background-color: var(--status-ok);
+    box-shadow: var(--glow-green), inset 0 1px 2px rgba(255,255,255,0.4);
+}
+
+.led-warn {
+    background-color: var(--status-warning);
+    box-shadow: 0 0 8px rgba(255, 234, 0, 0.4), inset 0 1px 2px rgba(255,255,255,0.4);
+}
+
+.led-danger {
+    background-color: var(--status-danger);
+    box-shadow: var(--glow-red), inset 0 1px 2px rgba(255,255,255,0.4);
+}
+
+.led-label {
+    font-size: 0.65rem;
+    color: var(--color-text-sub);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ==========================================================================
+   12. EMPTY GRAPH PLACEHOLDER OVERLAYS
+   ========================================================================== */
+.chart-placeholder-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(24, 32, 55, 0.85); /* Matches subcard background with opacity */
+    backdrop-filter: blur(2px);
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 4px;
+    transition: opacity 0.5s ease, visibility 0.5s;
+}
+
+.chart-placeholder-overlay span {
+    font-family: var(--font-ui);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--color-text-sub);
+    letter-spacing: 2px;
+    text-align: center;
+    animation: blink 2s infinite ease-in-out;
+}
+
+/* System metrics box header styling */
+.system-stats-box {
+    border-left: 2px solid var(--border-color);
+    padding-left: 15px;
+}
+.perf-val {
+    color: var(--accent-cyan) !important;
+}
+
+/* Connection port and baud dropdown layout specifications */
+.select-port {
+    min-width: 170px;
+}
+.select-baud {
+    min-width: 105px;
+}
+
+/* ==========================================================================
+   13. STATUS BADGES SYSTEM
+   ========================================================================== */
+.status-badge {
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    font-family: var(--font-numbers);
+    display: inline-block;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.badge-offline {
+    background-color: rgba(92, 107, 115, 0.15);
+    color: var(--status-offline);
+    border: 1px solid var(--status-offline);
+}
+
+.badge-online {
+    background-color: rgba(0, 230, 118, 0.15);
+    color: var(--status-ok);
+    border: 1px solid var(--status-ok);
+    text-shadow: var(--glow-green);
+    box-shadow: 0 0 10px rgba(0, 230, 118, 0.1);
+}
+
+.badge-connecting {
+    background-color: rgba(255, 145, 0, 0.1);
+    color: var(--accent-orange);
+    border: 1px solid var(--accent-orange);
+    animation: pulseGlow 1.5s infinite;
+}
+
+.badge-warning {
+    background-color: rgba(255, 234, 0, 0.1);
+    color: var(--status-warning);
+    border: 1px solid var(--status-warning);
+}
+
+.badge-simulation {
+    background-color: rgba(0, 188, 212, 0.1);
+    color: var(--accent-cyan);
+    border: 1px solid var(--accent-cyan);
+    text-shadow: var(--glow-cyan);
+}
+
+.badge-error {
+    background-color: rgba(255, 23, 68, 0.15);
+    color: var(--status-danger);
+    border: 1px solid var(--status-danger);
+    text-shadow: var(--glow-red);
+    animation: pulseGlowRed 1.2s infinite;
+}
+
+.badge-ready {
+    background-color: rgba(0, 230, 118, 0.15);
+    color: var(--status-ok);
+    border: 1px solid var(--status-ok);
+}
+
+.badge-calibrating {
+    background-color: rgba(0, 229, 255, 0.1);
+    color: var(--accent-cyan);
+    border: 1px solid var(--accent-cyan);
+    animation: pulseGlow 1.5s infinite;
+}
+
+@keyframes pulseGlow {
+    0% { opacity: 0.7; box-shadow: 0 0 5px rgba(255, 145, 0, 0.1); }
+    50% { opacity: 1; box-shadow: 0 0 15px rgba(255, 145, 0, 0.35); }
+    100% { opacity: 0.7; box-shadow: 0 0 5px rgba(255, 145, 0, 0.1); }
+}
+
+@keyframes pulseGlowRed {
+    0% { opacity: 0.7; box-shadow: 0 0 5px rgba(255, 23, 68, 0.2); }
+    50% { opacity: 1; box-shadow: 0 0 15px rgba(255, 23, 68, 0.5); }
+    100% { opacity: 0.7; box-shadow: 0 0 5px rgba(255, 23, 68, 0.2); }
+}
+
+/* ==========================================================================
+   14. CENTERED FLIGHT PHASE BADGES
+   ========================================================================== */
+.header-mission-phase {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.phase-hdr-lbl {
+    font-size: 0.7rem;
+    color: var(--color-text-sub);
+    letter-spacing: 1px;
+}
+
+.phase-hdr-badge {
+    font-family: var(--font-numbers);
+    font-size: 1.1rem;
+    font-weight: 700;
+    padding: 4px 15px;
+    border-radius: 4px;
+    letter-spacing: 1px;
+    border: 1px solid transparent;
+}
+
+.phase-prelaunch {
+    color: var(--status-ok);
+    border-color: var(--status-ok);
+    background-color: rgba(0, 230, 118, 0.05);
+    text-shadow: var(--glow-green);
+}
+
+.phase-ascent {
+    color: var(--status-warning);
+    border-color: var(--status-warning);
+    background-color: rgba(255, 234, 0, 0.05);
+}
+
+.phase-apogee {
+    color: var(--accent-orange);
+    border-color: var(--accent-orange);
+    background-color: rgba(255, 145, 0, 0.05);
+    animation: pulseGlow 1.5s infinite;
+}
+
+.phase-descent {
+    color: var(--accent-cyan);
+    border-color: var(--accent-cyan);
+    background-color: rgba(0, 229, 255, 0.05);
+    text-shadow: var(--glow-cyan);
+}
+
+.phase-recovery {
+    color: var(--color-text-sub);
+    border-color: var(--border-color);
+    background-color: rgba(24, 32, 55, 0.1);
+}
+
+.phase-separation, .phase-landing {
+    color: var(--accent-orange);
+    border-color: var(--accent-orange);
+    background-color: rgba(255, 145, 0, 0.05);
+    text-shadow: var(--glow-orange);
+}
+
+/* ==========================================================================
+   15. EVENT AND LOG SELECTOR STYLING
+   ========================================================================== */
+.card-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 6px;
+    margin-bottom: 10px;
+}
+
+.card-title-row .card-title {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.log-views-selection {
+    display: flex;
+    gap: 8px;
+}
+
+.log-views-selection .btn {
+    padding: 4px 12px;
+    font-size: 0.8rem;
+}
+
+.log-views-selection .btn.active-view {
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+    background-color: rgba(0, 229, 255, 0.05);
+    box-shadow: var(--glow-cyan);
+}
+
+.console-container {
+    height: 250px;
+    background-color: rgba(0, 0, 0, 0.35);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.terminal-logs-body {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-family: monospace;
+    font-size: 0.85rem;
+}
+
+.console-log-item {
+    line-height: 1.4;
+    border-left: 3px solid var(--border-color);
+    padding-left: 8px;
+}
+
+.log-info { border-left-color: var(--accent-blue); color: var(--color-text-main); }
+.log-success { border-left-color: var(--status-ok); color: var(--status-ok); }
+.log-warning { border-left-color: var(--status-warning); color: var(--status-warning); }
+.log-error { border-left-color: var(--status-danger); color: var(--status-danger); }
+.log-boot { border-left-color: var(--accent-orange); color: var(--accent-orange); }
+
+.log-timestamp {
+    color: var(--color-text-sub);
+    margin-right: 8px;
+    font-weight: 700;
+}
+
+/* ==========================================================================
+   16. DIAGNOSTIC GAUGE & CHECKS SCROLLBARS
+   ========================================================================== */
+.readiness-gauge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.gauge-label {
+    font-size: 0.8rem;
+    color: var(--color-text-sub);
+    letter-spacing: 1px;
+}
+
+.gauge-val {
+    font-family: var(--font-numbers);
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--accent-cyan);
+    text-shadow: var(--glow-cyan);
+}
+
+.scrollable-boot-log {
+    max-height: 180px;
+    overflow-y: auto;
+    width: 100%;
+    border: 1px solid var(--border-color);
+    padding: 8px;
+    background-color: rgba(0,0,0,0.25);
+    border-radius: 4px;
+}
+
+/* ==========================================================================
+   17. CENTERED GRAPH PLACEHOLDER
+   ========================================================================== */
+.chart-placeholder-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.placeholder-main-text {
+    font-family: var(--font-numbers);
+    font-size: 1.1rem;
+    font-weight: 900;
+    color: var(--status-danger);
+    text-shadow: var(--glow-red);
+    letter-spacing: 2px;
+}
+
+.placeholder-sub-text {
+    font-size: 0.8rem;
+    color: var(--color-text-sub);
+    letter-spacing: 1px;
+}
+
+/* ==========================================================================
+   18. SUBSYSTEM LED STATE ANIMATIONS
+   ========================================================================== */
+.led-blink {
+    animation: ledPulse 1.2s infinite ease-in-out;
+}
+
+@keyframes ledPulse {
+    0% { background-color: #2a354f; box-shadow: none; }
+    50% { background-color: var(--status-warning); box-shadow: 0 0 8px rgba(255, 234, 0, 0.5); }
+    100% { background-color: #2a354f; box-shadow: none; }
+}

@@ -1,0 +1,5 @@
+[
+  { "packet": 1, "altitude": 0, "descentRate": 0, "temperature": 27.1, "pressure": 101325, "battery": 8.4, "latitude": 28.6139, "longitude": 77.209, "roll": 0, "pitch": 0, "yaw": 0, "gps": true, "rssi": -61 },
+  { "packet": 2, "altitude": 125.5, "descentRate": 0, "temperature": 26.3, "pressure": 99828, "battery": 8.39, "latitude": 28.613918, "longitude": 77.209022, "roll": 4.8, "pitch": -2.3, "yaw": 12, "gps": true, "rssi": -63 },
+  { "packet": 3, "altitude": 814.2, "descentRate": 8.9, "temperature": 21.5, "pressure": 91980, "battery": 8.31, "latitude": 28.614044, "longitude": 77.209176, "roll": -7.2, "pitch": 5.1, "yaw": 84, "gps": true, "rssi": -68 }
+]

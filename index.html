@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- Ensure responsive scaling on all screen sizes (mobile, tablet, desktop) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ISL CanSat Ground Control Station</title>
+    
+    <!-- Google Fonts for professional aerospace look: Orbitron (digital telemetry digits) & Rajdhani (UI labels) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Link to custom CSS stylesheet -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIINfQxk0uSg7kM6QxM/2IeL0Llw8E5sHk=" crossorigin="">
+</head>
+<body>
+    
+    <!-- ==================== 1. INITIAL RUN-TIME DIAGNOSTIC BOOT SCREEN ==================== -->
+    <div id="loading-screen" class="loading-overlay" role="dialog" aria-modal="true" aria-label="System boot self diagnostics">
+        <div class="loading-content">
+            <div class="loading-logo-box">
+                <span class="loading-logo-main">ISL CANSAT GCS</span>
+                <span class="loading-logo-sub">GROUND SYSTEMS SELF DIAGNOSTIC BOOT</span>
+            </div>
+            
+            <!-- Overall Mission Readiness Score -->
+            <div class="readiness-gauge">
+                <span class="gauge-label">SYSTEM READINESS SCORE:</span>
+                <span id="readiness-score" class="gauge-val">0%</span>
+            </div>
+            
+            <div class="loading-bar">
+                <div id="loading-progress" class="loading-bar-fill"></div>
+            </div>
+            
+            <!-- Checklist target where app.js will dynamically construct 16+ sequential boot sequences -->
+            <div id="boot-checklist" class="loading-status-list scrollable-boot-log" aria-live="polite">
+                <!-- Checklist items will be populated by app.js -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Main wrapper providing structural boundary for the GCS application -->
+    <div class="gcs-wrapper">
+        
+        <!-- ==================== TOP HEADER SECTION ==================== -->
+        <!-- Role: banner establishes this as the primary page header for screen readers -->
+        <header class="gcs-header" role="banner">
+            <!-- Left Branding -->
+            <div class="header-logo">
+                <span class="logo-text">ISL</span>
+                <span class="logo-subtext">CANSAT GCS</span>
+            </div>
+            
+            <!-- Centered Flight Phase Selector Indicator -->
+            <div class="header-mission-phase" aria-live="polite">
+                <span class="phase-hdr-lbl">CURRENT FLIGHT PHASE</span>
+                <div id="header-phase-badge" class="phase-hdr-badge phase-prelaunch">🟢 PRE-LAUNCH</div>
+            </div>
+            
+            <!-- Timers & Hardware Diagnostic Stats Panel -->
+            <div class="mission-timers">
+                <div class="timer-box system-stats-box">
+                    <span class="timer-label">SYS HEALTH (FPS / MEM / RNDR)</span>
+                    <span id="system-perf-val" class="timer-value perf-val">-- FPS / -- MB / -- ms</span>
+                </div>
+                <div class="timer-box">
+                    <span class="timer-label">MISSION TIME (MET)</span>
+                    <span id="mission-timer" class="timer-value">00:00:00</span>
+                </div>
+                <div class="timer-box">
+                    <span class="timer-label">PC TIME (UTC)</span>
+                    <span id="utc-timer" class="timer-value">00:00:00</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- ==================== TOP CONTROL BAR ==================== -->
+        <!-- Role: navigation represents group of controls to traverse GCS state -->
+        <nav class="gcs-control-bar" aria-label="GCS Control Panel">
+            <!-- Telemetry Port Connection Settings -->
+            <div class="control-group connection-settings">
+                <select id="com-port" class="form-select select-port" aria-label="Select Serial Port interface">
+                    <option value="COM1">COM1 - USB Serial</option>
+                    <option value="COM3">COM3 - Arduino Core</option>
+                    <option value="COM5">COM5 - RF Transceiver</option>
+                    <option value="SIMULATOR" selected>SIMULATOR - Physics Engine</option>
+                </select>
+                <select id="baud-rate" class="form-select select-baud" aria-label="Select Serial Baud Rate speed">
+                    <option value="9600">9600 bps</option>
+                    <option value="19200">19200 bps</option>
+                    <option value="38400">38400 bps</option>
+                    <option value="57600">57600 bps</option>
+                    <option value="115200">115200 bps</option>
+                </select>
+            </div>
+
+            <!-- Telemetry Streaming Actions -->
+            <div class="control-group">
+                <button id="btn-start" class="btn btn-start" aria-label="Start Telemetry Ingestion">START TELEMETRY</button>
+                <button id="btn-stop" class="btn btn-stop" disabled aria-label="Stop Telemetry Ingestion">STOP TELEMETRY</button>
+            </div>
+            
+            <!-- Pre-Flight & Operational Checks -->
+            <div class="control-group">
+                <button id="btn-sync-time" class="btn btn-utility" aria-label="Sync ground control timer with PC time">SYNC TIME</button>
+                <button id="btn-calibrate" class="btn btn-utility" aria-label="Calibrate onboard sensors baseline">CALIBRATE SENSORS</button>
+                <button id="btn-health" class="btn btn-utility" aria-label="Run ground control diagnostic health check">HEALTH CHECK</button>
+                <button id="btn-reset" class="btn btn-utility" aria-label="Reset telemetry data and clear session logs">RESET SESSION</button>
+            </div>
+            
+            <!-- Data Management & Exports -->
+            <div class="control-group">
+                <button id="btn-export-csv" class="btn btn-export" aria-label="Export Telemetry Log data to CSV file">EXPORT LOGS</button>
+                <button id="btn-export-graph" class="btn btn-export" aria-label="Export active graphs as image format">EXPORT GRAPHS</button>
+            </div>
+        </nav>
+
+        <!-- ==================== MAIN DASHBOARD LAYOUT ==================== -->
+        <!-- Role: main identifies the central interactive workspace of the GCS -->
+        <main class="gcs-dashboard-grid" role="main">
+            
+            <!-- PANEL 1: Telemetry Data Readout -->
+            <section class="gcs-card telemetry-panel" aria-labelledby="telemetry-title">
+                <h2 id="telemetry-title" class="card-title">TELEMETRY DATA READOUTS</h2>
+                
+                <div class="telemetry-row">
+                    <!-- Container Telemetry Section -->
+                    <article class="telemetry-sub-card" aria-labelledby="container-telemetry-title">
+                        <h3 id="container-telemetry-title">CONTAINER TELEMETRY</h3>
+                        <div class="data-grid">
+                            <div class="data-row">
+                                <span class="data-label">PACKET COUNT</span>
+                                <span id="val-packet-count" class="data-value">0</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">ALTITUDE</span>
+                                <span class="data-value"><span id="val-altitude">0.0</span> m</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">DESCENT RATE</span>
+                                <span class="data-value"><span id="val-descent-rate">0.0</span> m/s</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">TEMPERATURE</span>
+                                <span class="data-value"><span id="val-temp">0.0</span> °C</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">PRESSURE</span>
+                                <span class="data-value"><span id="val-pressure">0</span> Pa</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">BATTERY VOLTAGE</span>
+                                <span class="data-value"><span id="val-battery">0.0</span> V</span>
+                            </div>
+                        </div>
+                    </article>
+                    
+                    <!-- Payload Telemetry Section -->
+                    <article class="telemetry-sub-card" aria-labelledby="payload-telemetry-title">
+                        <h3 id="payload-telemetry-title">PAYLOAD TELEMETRY</h3>
+                        <div class="data-grid">
+                            <div class="data-row">
+                                <span class="data-label">LATITUDE</span>
+                                <span id="val-latitude" class="data-value">0.000000</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">LONGITUDE</span>
+                                <span id="val-longitude" class="data-value">0.000000</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">ROLL</span>
+                                <span class="data-value"><span id="val-roll">0</span>°</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">PITCH</span>
+                                <span class="data-value"><span id="val-pitch">0</span>°</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">YAW</span>
+                                <span class="data-value"><span id="val-yaw">0</span>°</span>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <!-- PANEL 2: Mission Summary & Health -->
+            <section class="gcs-card summary-panel" aria-labelledby="summary-title">
+                <h2 id="summary-title" class="card-title">MISSION HEALTH & MONITORING</h2>
+                <div class="summary-details">
+                    <div class="data-grid">
+                        <div class="data-row">
+                            <span class="data-label">CONN STATUS</span>
+                            <span id="summary-conn-status" class="data-value status-badge badge-offline">OFFLINE</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">FLIGHT STATE</span>
+                            <span id="summary-phase" class="data-value text-accent">PRE-LAUNCH</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">TELEMETRY RATE</span>
+                            <span id="summary-rate" class="data-value">0.0 packets/sec</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">PACKETS RECV</span>
+                            <span id="summary-packets-count" class="data-value">0</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">PACKETS LOST</span>
+                            <span id="summary-packets-lost" class="data-value">0</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">PACKET LOSS %</span>
+                            <span id="summary-packets-loss-pct" class="data-value">0.0 %</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">COMMS LATENCY</span>
+                            <span id="summary-latency" class="data-value">-- ms</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">CONNECTION UPTIME</span>
+                            <span id="summary-uptime" class="data-value">00:00:00</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">BATTERY HEALTH</span>
+                            <span id="summary-battery-health" class="data-value">GOOD (100%)</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">CPU LOAD (SIM)</span>
+                            <span id="summary-cpu-load" class="data-value">0%</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">LAST PACKET MET</span>
+                            <span id="summary-last-time" class="data-value">--</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">SIGNAL QUALITY</span>
+                            <span id="summary-rssi" class="data-value">-- dBm</span>
+                        </div>
+                    </div>
+                    
+                    <!-- High-tech Status LEDs Array -->
+                    <div class="led-array-container">
+                        <span class="led-array-label">SUBSYSTEM STATUS MATRIX:</span>
+                        <div class="systems-led-grid">
+                            <div class="led-item" title="Radio Communication link status">
+                                <span class="led-light led-off" id="led-radio"></span>
+                                <span class="led-label">RADIO</span>
+                            </div>
+                            <div class="led-item" title="GPS Satellites coordinate lock status">
+                                <span class="led-light led-off" id="led-gps"></span>
+                                <span class="led-label">GPS</span>
+                            </div>
+                            <div class="led-item" title="Onboard telemetry sensors calibration status">
+                                <span class="led-light led-off" id="led-sensors"></span>
+                                <span class="led-label">SENSORS</span>
+                            </div>
+                            <div class="led-item" title="3D orientation and tilt calibration status">
+                                <span class="led-light led-off" id="led-orient"></span>
+                                <span class="led-label">ORIENT</span>
+                            </div>
+                            <div class="led-item" title="Onboard live video streaming state">
+                                <span class="led-light led-off" id="led-video"></span>
+                                <span class="led-label">VIDEO</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PANEL 3: Diagnostic & Error Alert System -->
+            <section class="gcs-card error-panel" aria-labelledby="diagnostic-title">
+                <h2 id="diagnostic-title" class="card-title">DIAGNOSTIC FAULTS & ALERTS</h2>
+                
+                <!-- 4-digit diagnostic code display -->
+                <div class="error-code-container" aria-label="4-digit diagnostic error code system">
+                    <div class="error-digit-box">
+                        <span id="digit-1" class="error-digit">0</span>
+                        <span class="digit-subtext">RATE</span>
+                    </div>
+                    <div class="error-digit-box">
+                        <span id="digit-2" class="error-digit">0</span>
+                        <span class="digit-subtext">GPS</span>
+                    </div>
+                    <div class="error-digit-box">
+                        <span id="digit-3" class="error-digit">0</span>
+                        <span class="digit-subtext">SEP</span>
+                    </div>
+                    <div class="error-digit-box">
+                        <span id="digit-4" class="error-digit">0</span>
+                        <span class="digit-subtext">PARA</span>
+                    </div>
+                </div>
+                
+                <!-- Live warning logs; aria-live="assertive" means critical alarms are announced immediately -->
+                <div class="active-alerts" id="alerts-log" aria-live="assertive" aria-label="Active Mission Alerts Log">
+                    <!-- Notifications and alerts will dynamically append here -->
+                </div>
+            </section>
+
+            <!-- PANEL 8: Graphs (Sensor Visualizations) -->
+            <section class="gcs-card graphs-panel" aria-labelledby="graphs-title">
+                <h2 id="graphs-title" class="card-title">REAL-TIME TELEMETRY PLOTS</h2>
+                
+                <div class="graphs-grid">
+                    <div class="chart-wrapper">
+                        <!-- Altitude Chart Canvas -->
+                        <div class="chart-placeholder-overlay" id="overlay-chart-altitude">
+                            <div class="chart-placeholder-content">
+                                <span class="placeholder-main-text">NO LIVE TELEMETRY</span>
+                                <span class="placeholder-sub-text">Waiting for Mission Start. Press START TELEMETRY.</span>
+                            </div>
+                        </div>
+                        <canvas id="chart-altitude" aria-label="Altitude over time graph" role="img"></canvas>
+                    </div>
+                    <div class="chart-wrapper">
+                        <!-- Temperature Chart Canvas -->
+                        <div class="chart-placeholder-overlay" id="overlay-chart-temperature">
+                            <div class="chart-placeholder-content">
+                                <span class="placeholder-main-text">NO LIVE TELEMETRY</span>
+                                <span class="placeholder-sub-text">Waiting for Mission Start. Press START TELEMETRY.</span>
+                            </div>
+                        </div>
+                        <canvas id="chart-temperature" aria-label="Temperature over time graph" role="img"></canvas>
+                    </div>
+                    <div class="chart-wrapper">
+                        <!-- Pressure Chart Canvas -->
+                        <div class="chart-placeholder-overlay" id="overlay-chart-pressure">
+                            <div class="chart-placeholder-content">
+                                <span class="placeholder-main-text">NO LIVE TELEMETRY</span>
+                                <span class="placeholder-sub-text">Waiting for Mission Start. Press START TELEMETRY.</span>
+                            </div>
+                        </div>
+                        <canvas id="chart-pressure" aria-label="Atmospheric pressure over time graph" role="img"></canvas>
+                    </div>
+                    <div class="chart-wrapper">
+                        <!-- Descent Rate Chart Canvas -->
+                        <div class="chart-placeholder-overlay" id="overlay-chart-descent-rate">
+                            <div class="chart-placeholder-content">
+                                <span class="placeholder-main-text">NO LIVE TELEMETRY</span>
+                                <span class="placeholder-sub-text">Waiting for Mission Start. Press START TELEMETRY.</span>
+                            </div>
+                        </div>
+                        <canvas id="chart-descent-rate" aria-label="Descent velocity over time graph" role="img"></canvas>
+                    </div>
+                    <div class="chart-wrapper">
+                        <!-- Battery Voltage Chart Canvas -->
+                        <div class="chart-placeholder-overlay" id="overlay-chart-battery">
+                            <div class="chart-placeholder-content">
+                                <span class="placeholder-main-text">NO LIVE TELEMETRY</span>
+                                <span class="placeholder-sub-text">Waiting for Mission Start. Press START TELEMETRY.</span>
+                            </div>
+                        </div>
+                        <canvas id="chart-battery" aria-label="Battery charge voltage over time graph" role="img"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PANEL 7: 3D Orientation (Roll, Pitch, Yaw) -->
+            <section class="gcs-card orientation-panel" aria-labelledby="orientation-title">
+                <h2 id="orientation-title" class="card-title">ORIENTATION VISUALIZATION</h2>
+                
+                <!-- Target for Three.js WebGL canvas injection -->
+                <div id="orientation-canvas-container" class="canvas-container" role="img" aria-label="3D visual representation of CanSat tilt orientation">
+                    <div class="orientation-placeholder">
+                        <span>Waiting for Telemetry connection...</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PANEL 4: Tracking Map -->
+            <section class="gcs-card map-panel" aria-labelledby="map-title">
+                <h2 id="map-title" class="card-title">GPS TRACKING MAP</h2>
+                <!-- Leaflet map injection target -->
+                <div id="gps-map" class="map-container" role="application" aria-label="Map displaying live telemetry flight path">
+                    <div class="orientation-placeholder">
+                        <span>Map module offline. Start telemetry to initialize map coordinate overlay.</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PANEL 5: Mission Critical Commands -->
+            <section class="gcs-card command-panel" aria-labelledby="commands-title">
+                <h2 id="commands-title" class="card-title">MISSION CRITICAL COMMANDS</h2>
+                
+                <div class="command-buttons">
+                    <button id="cmd-separation" class="btn btn-warning" aria-label="Trigger manual separation of payload from container">MANUAL SEPARATION</button>
+                    <button id="cmd-parachute" class="btn btn-danger" aria-label="Deploy emergency recovery parachute">DEPLOY EMERGENCY PARACHUTE</button>
+                    <button id="cmd-redundant" class="btn btn-info" aria-label="Trigger secondary backup activation circuit">REDUNDANT ACTIVATION</button>
+                </div>
+                
+                <div class="command-status" aria-live="polite">
+                    <span class="status-lbl">COMMAND STATUS:</span>
+                    <span id="cmd-status-text" class="status-val text-muted">IDLE</span>
+                </div>
+            </section>
+
+            <!-- PANEL 6: Live Video Stream -->
+            <section class="gcs-card video-panel" aria-labelledby="video-title">
+                <h2 id="video-title" class="card-title">LIVE VIDEO STREAM</h2>
+                
+                <div class="video-container">
+                    <video id="webcam-stream" autoplay playsinline muted aria-label="Live camera feed from CanSat module"></video>
+                    
+                    <!-- Fallback content if webcam/camera stream fails to initialize -->
+                    <div id="video-fallback" class="orientation-placeholder" style="display: none;">
+                        <span>Camera module disconnected or access denied.</span>
+                    </div>
+                    
+                    <div class="video-overlay">
+                        <span class="rec-dot" aria-hidden="true"></span>
+                        <span id="video-status-text">VIDEO STREAM FEED</span>
+                    </div>
+                </div>
+                
+                <div class="video-controls">
+                    <select id="camera-select" class="form-select" aria-label="Select camera hardware source">
+                        <option value="">Select Camera Module</option>
+                    </select>
+                    <button id="btn-toggle-camera" class="btn btn-utility" aria-label="Toggle camera video feed on or off">START VIDEO</button>
+                </div>
+            </section>
+
+
+            <!-- PANEL 9: Telemetry Data Table Logs & Event Recorder -->
+            <section class="gcs-card logs-panel" aria-labelledby="logs-title">
+                <div class="card-title-row">
+                    <h2 id="logs-title" class="card-title">TELEMETRY PACKET LOGS & EVENTS</h2>
+                    <div class="log-views-selection">
+                        <button id="view-telemetry-logs" class="btn btn-utility active-view" aria-label="View numeric telemetry logs grid">TELEMETRY PACKETS</button>
+                        <button id="view-console-logs" class="btn btn-utility" aria-label="View system terminal messages log">CONSOLE LOGS</button>
+                    </div>
+                </div>
+                
+                <!-- Tabular packets view -->
+                <div class="table-container" id="telemetry-table-view">
+                    <table class="table-logs">
+                        <caption>Table displaying chronological log of received telemetry packets</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">PKT #</th>
+                                <th scope="col">MET TIME</th>
+                                <th scope="col">TIMESTAMP (UTC)</th>
+                                <th scope="col">ALT (m)</th>
+                                <th scope="col">TEMP (°C)</th>
+                                <th scope="col">PRESS (Pa)</th>
+                                <th scope="col">BATT (V)</th>
+                                <th scope="col">GPS (LAT, LNG)</th>
+                                <th scope="col">R / P / Y</th>
+                                <th scope="col">TELEMETRY STATUS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logs-tbody">
+                            <tr>
+                                <td colspan="10" class="text-center text-muted">No telemetry packets received.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Scrolling text terminal view -->
+                <div class="console-container" id="terminal-console-view" style="display: none;">
+                    <div class="terminal-logs-body" id="console-logs-body">
+                        <!-- Populated by logger.js -->
+                    </div>
+                </div>
+            </section>
+
+        </main>
+        
+        <!-- ==================== FOOTER SECTION ==================== -->
+        <!-- Role: contentinfo signals footer containing metadata and version tags -->
+        <footer class="gcs-footer" role="contentinfo">
+            <span class="footer-team">India Space Lab | CanSat Ground Control Station</span>
+            <span class="footer-ver">Prototype v1.0 | Build 2026.07 | Simulation Mode | Developed for ISL Internship Program</span>
+        </footer>
+
+    </div>
+
+    <!-- ==================== LOCAL MODULAR SCRIPTS ==================== -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="js/logger.js"></script>
+    <script src="js/telemetry.js"></script>
+    <script src="js/controls.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/map.js"></script>
+    <script src="js/orientation.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
